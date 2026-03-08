@@ -1,29 +1,82 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { 
+Client, 
+GatewayIntentBits, 
+ChannelType, 
+PermissionFlagsBits, 
+ActionRowBuilder, 
+ButtonBuilder, 
+ButtonStyle 
+} = require('discord.js');
 
-// Crée le client avec les intents nécessaires pour lire les messages
-const client = new Client({ 
+const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
-    ] 
+    ]
 });
 
-// Quand le bot est prêt
-client.once('ready', () => {
+client.once('clientReady', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
 
-// Log tous les messages reçus (hors bots)
-client.on('messageCreate', (message) => {
+client.on('messageCreate', async (message) => {
+
     if (message.author.bot) return;
-    console.log(`Message from ${message.author.tag}: ${message.content}`);
+
+    // commande pour envoyer le bouton ticket
+    if (message.content === "!ticket") {
+
+        const button = new ButtonBuilder()
+            .setCustomId('create_ticket')
+            .setLabel('🎫 Créer un ticket')
+            .setStyle(ButtonStyle.Primary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(button);
+
+        await message.channel.send({
+            content: "Clique sur le bouton pour ouvrir un ticket.",
+            components: [row]
+        });
+
+    }
 });
 
-// Connexion avec le token depuis la variable d'environnement
+client.on('interactionCreate', async interaction => {
+
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === "create_ticket") {
+
+        const ticketChannel = await interaction.guild.channels.create({
+            name: `ticket-${interaction.user.username}`,
+            type: ChannelType.GuildText,
+            permissionOverwrites: [
+                {
+                    id: interaction.guild.id,
+                    deny: [PermissionFlagsBits.ViewChannel]
+                },
+                {
+                    id: interaction.user.id,
+                    allow: [
+                        PermissionFlagsBits.ViewChannel,
+                        PermissionFlagsBits.SendMessages
+                    ]
+                }
+            ]
+        });
+
+        await ticketChannel.send(`🎫 Ticket ouvert par ${interaction.user}`);
+
+        await interaction.reply({
+            content: `Ton ticket a été créé : ${ticketChannel}`,
+            ephemeral: true
+        });
+    }
+
+});
+
 const token = process.env.DISCORD_TOKEN;
-if (!token) {
-    console.log('DISCORD_TOKEN environment variable not set.');
-} else {
-    client.login(token);
-}
+
+client.login(token);
