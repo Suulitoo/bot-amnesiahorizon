@@ -1,40 +1,29 @@
-
 const { Client, GatewayIntentBits } = require('discord.js');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// Crée le client avec les intents nécessaires pour lire les messages
+const client = new Client({ 
+    intents: [
+        GatewayIntentBits.Guilds, 
+        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.MessageContent
+    ] 
+});
 
+// Quand le bot est prêt
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
 });
 
+// Log tous les messages reçus (hors bots)
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
     console.log(`Message from ${message.author.tag}: ${message.content}`);
 });
 
+// Connexion avec le token depuis la variable d'environnement
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
     console.log('DISCORD_TOKEN environment variable not set.');
 } else {
     client.login(token);
-
-const { Client, GatewayIntentBits } = require('discord.js');
-
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}`);
-});
-
-client.on('messageCreate', (message) => {
-    if (message.author.bot) return;
-    console.log(`Message from ${message.author.tag}: ${message.content}`);
-});
-
-const token = process.env.DISCORD_TOKEN;
-if (!token) {
-    console.log('DISCORD_TOKEN environment variable not set.');
-} else {
-    client.login(token);
->>>>>>> 062b23cb88d70fa223d3b3948d9a324fb27804db
 }
